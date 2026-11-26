@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Langit Nusantara — Game Terbang</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a1626;
+    font-family: "Segoe UI", Verdana, Geneva, sans-serif; color: #eaf4ff; }
+  #wrap { position: relative; width: 100vw; height: 100vh; }
+  #game { display: block; width: 100vw; height: 100vh; }
+  .panel { position: absolute; background: rgba(6, 20, 38, 0.82); border: 1px solid rgba(120, 200, 255, 0.35);
+    border-radius: 10px; backdrop-filter: blur(2px); }
+  #topbar { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 5; }
+  #topbar button { background: rgba(6, 20, 38, 0.85); color: #cfeaff; border: 1px solid rgba(120, 200, 255, 0.45);
+    border-radius: 8px; padding: 8px 12px; font-size: 14px; cursor: pointer; }
+  #topbar button:hover { background: rgba(30, 80, 130, 0.9); }
+  #menu { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 620px; max-width: 92vw;
+    padding: 26px 30px 22px; text-align: center; z-index: 10; }
+  #menu h1 { font-size: 40px; letter-spacing: 3px; color: #ffd166; text-shadow: 0 2px 12px rgba(255, 180, 40, 0.45); }
+  #menu h2 { font-size: 15px; font-weight: 400; color: #9fd4ff; margin: 6px 0 16px; letter-spacing: 1px; }
+  #menu .mission { display: block; width: 100%; text-align: left; margin: 8px 0; padding: 12px 14px;
+    background: rgba(20, 60, 105, 0.75); border: 1px solid rgba(120, 200, 255, 0.4); border-radius: 8px;
+    color: #eaf4ff; cursor: pointer; font-size: 15px; }
+  #menu .mission:hover { background: rgba(40, 100, 160, 0.85); border-color: #ffd166; }
+  #menu .mission b { color: #ffd166; font-size: 16px; }
+  #menu .mission span { display: block; font-size: 13px; color: #b9d9f2; margin-top: 3px; }
+  #menu .controls { font-size: 13px; color: #9fc3e2; line-height: 1.7; margin-top: 14px; }
+  #menu .controls b { color: #eaf4ff; }
+  #endcard { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; max-width: 92vw;
+    padding: 24px 28px; text-align: center; z-index: 10; display: none; }
+  #endcard h1 { font-size: 30px; color: #ffd166; margin-bottom: 8px; }
+  #endcard p { font-size: 15px; line-height: 1.6; color: #d6ecff; }
+  #endcard .score { font-size: 22px; color: #7dffb0; margin: 10px 0; }
+  #endcard button { margin: 12px 6px 0; padding: 10px 18px; font-size: 15px; cursor: pointer;
+    background: rgba(20, 60, 105, 0.85); color: #eaf4ff; border: 1px solid rgba(120, 200, 255, 0.5); border-radius: 8px; }
+  #endcard button:hover { background: rgba(40, 100, 160, 0.9); }
+  #toast { left: 50%; top: 84px; transform: translateX(-50%); padding: 8px 18px; font-size: 17px;
+    color: #ffe9a8; z-index: 6; display: none; white-space: nowrap; }
+  #hint { position: absolute; left: 10px; bottom: 10px; font-size: 12px; color: rgba(220, 240, 255, 0.75);
+    background: rgba(6, 20, 38, 0.6); padding: 6px 10px; border-radius: 6px; z-index: 4; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" width="1280" height="720"></canvas>
+  <div id="topbar">
+    <button id="btnSound" type="button">Suara: Nyala</button>
+    <button id="btnPause" type="button">Jeda (P)</button>
+    <button id="btnMenu" type="button">Menu</button>
+  </div>
+  <div id="toast" class="panel"></div>
+  <div id="menu" class="panel">
+    <h1>LANGIT NUSANTARA</h1>
+    <h2>Terbang di atas kepulauan — ring, pulau, dan landasan menantimu</h2>
+    <button class="mission" data-mission="ring" type="button"><b>1 &middot; Ring Run — Lomba Ring</b><span>Terbang melewati 8 ring di langit kepulauan. Tiap ring +100 poin, bonus waktu bila cepat.</span></button>
+    <button class="mission" data-mission="hop" type="button"><b>2 &middot; Island Hop — Lompat Pulau</b><span>Kunjungi 4 pulau berturut-turut. Hemat bahan bakar — tangki kosong berarti melayang.</span></button>
+    <button class="mission" data-mission="land" type="button"><b>3 &middot; Runway Landing — Mendarat Mulus</b><span>Lepas landas, putari mercusuar, lalu mendarat kembali di landasan. Makin halus makin besar bonus.</span></button>
+    <div class="controls">
+      <b>Atas / Bawah</b> naik &middot; turun &nbsp;|&nbsp; <b>Kiri / Kanan</b> belok &nbsp;|&nbsp; <b>W / S</b> throttle &nbsp;|&nbsp; <b>Spasi</b> flap &nbsp;|&nbsp; <b>B</b> rem udara &nbsp;|&nbsp; <b>M</b> suara &nbsp;|&nbsp; <b>P</b> jeda<br>
+      Jaga kecepatan di atas stall, jangan menabrak bukit, dan mendarat pelan di landasan.
+    </div>
+  </div>
+  <div id="endcard" class="panel">
+    <h1 id="endTitle">Misi Selesai</h1>
+    <p id="endText"></p>
+    <div class="score" id="endScore"></div>
+    <button id="btnAgain" type="button">Terbang Lagi</button>
+    <button id="btnEndMenu" type="button">Pilih Misi</button>
+  </div>
+  <div id="hint">W/S throttle &middot; Panah terbang &middot; Spasi flap &middot; B rem udara &middot; M suara &middot; P jeda</div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
